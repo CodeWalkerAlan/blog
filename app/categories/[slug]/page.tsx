@@ -26,7 +26,7 @@ async function getPostsByCategory(categoryId: string) {
 
   // 获取分类关联
   const { data: postRelations, error } = await supabase
-    .from("categories")
+    .from("post_categories")
     .select("post_id")
     .eq("category_id", categoryId)
 

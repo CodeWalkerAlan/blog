@@ -12,9 +12,13 @@ import { useAuth } from "@/components/auth-provider"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { Github } from "lucide-react"
+import { getSupabaseClient } from "@/lib/supabase/client"
+
 
 export default function Register() {
+  const supabase = getSupabaseClient()
   const [email, setEmail] = useState("")
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -38,12 +42,31 @@ export default function Register() {
     setIsLoading(true)
 
     try {
-      const { error } = await signUp(email, password)
+      const { data: signData, error } = await supabase.auth.signUp({email, password})
 
       if (error) {
         toast({
           title: "注册失败",
           description: error.message,
+          variant: "destructive",
+        })
+        return
+      }
+
+      const { error: userProfilesError } = await (supabase as any)
+        .from("user_profiles")
+        .insert([
+          {
+            id: signData.user?.id,
+            username,
+            email
+          },
+        ])
+      
+      if(userProfilesError) {
+        toast({
+          title: "写入失败",
+          description: userProfilesError.message,
           variant: "destructive",
         })
         return
@@ -132,6 +155,18 @@ export default function Register() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">用户名</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="someone"
                   required
                   disabled={isLoading}
                 />

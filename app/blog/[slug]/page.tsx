@@ -10,7 +10,8 @@ import { EnhancedContent } from "@/components/enhanced-content"
 export const revalidate = 60 // 每分钟重新验证页面
 
 async function getPostBySlug(slug: string) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
+  console.log(888888, supabase)
 
   // 首先获取文章
   const { data: post, error } = await supabase.from("posts").select("*").eq("slug", slug).eq("published", true).single() // 
@@ -41,16 +42,18 @@ async function getPostBySlug(slug: string) {
 }
 
 async function getCurrentUser() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
-  return session?.user || null
+    data: user,
+  } = await supabase.auth.getUser()
+  return user || null
 }
 
 export default async function BlogPost({ params }: { params: { slug: string } }) {
-  const post = await getPostBySlug(params.slug)
+  const { slug } = await params;
+  const post = await getPostBySlug(slug)
   const currentUser = await getCurrentUser()
+
 
   if (!post) {
     notFound()

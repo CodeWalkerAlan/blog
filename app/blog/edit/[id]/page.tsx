@@ -18,8 +18,10 @@ import { RichTextEditor } from "@/components/rich-text-editor"
 import type { Post, Category } from "@/types"
 import { notFound } from "next/navigation"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { use } from 'react'
 
-export default function EditBlogPost({ params }: { params: { id: string } }) {
+
+export default function EditBlogPost({ params }: { params: Promise<{ id: string }> }) {
   const [post, setPost] = useState<Post | null>(null)
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
@@ -30,25 +32,39 @@ export default function EditBlogPost({ params }: { params: { id: string } }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [postId, setPostId] = useState("");
+  // const { id: postId } = use(params)
 
   const { user } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
   const supabase = getSupabaseClient()
 
+
+
   useEffect(() => {
     if (!user) {
       router.push("/login")
       return
     }
+    const getId = async () => {
+      const { id } = await params;
+      setPostId(id)
+    }
+    getId()
 
-    const fetchPost = async () => {
+
+  }, [params, user, router])
+
+  useEffect(() => {
+      if (!postId || !user) return
+      const fetchPost = async () => {
       try {
         // 获取文章
         const { data: postData, error: postError } = await supabase
           .from("posts")
           .select("*")
-          .eq("id", params.id)
+          .eq("id", postId)
           .single()
 
         if (postError) {
@@ -88,7 +104,7 @@ export default function EditBlogPost({ params }: { params: { id: string } }) {
         const { data: postCategoriesData, error: postCategoriesError } = await supabase
           .from("post_categories")
           .select("category_id")
-          .eq("post_id", params.id)
+          .eq("post_id", postId)
 
         if (postCategoriesError) {
           throw postCategoriesError
@@ -107,8 +123,9 @@ export default function EditBlogPost({ params }: { params: { id: string } }) {
       }
     }
 
+
     fetchPost()
-  }, [params.id, user, router, toast])
+  }, [postId, user, router, toast])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

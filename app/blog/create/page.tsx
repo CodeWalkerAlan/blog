@@ -131,7 +131,7 @@ export default function CreateBlogPost() {
           category_id: categoryId,
         }))
 
-        const { error: relationError } = await supabase.from("post_categories").insert(categoryRelations)
+        const { error: relationError } = await supabase.from("categories").insert(categoryRelations)
 
         if (relationError) {
           throw relationError

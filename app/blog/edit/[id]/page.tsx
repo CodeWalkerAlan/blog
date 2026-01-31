@@ -86,7 +86,7 @@ export default function EditBlogPost({ params }: { params: { id: string } }) {
 
         // 获取文章的分类
         const { data: postCategoriesData, error: postCategoriesError } = await supabase
-          .from("post_categories")
+          .from("categories")
           .select("category_id")
           .eq("post_id", params.id)
 
@@ -146,7 +146,7 @@ export default function EditBlogPost({ params }: { params: { id: string } }) {
       }
 
       // 删除现有的分类关联
-      const { error: deleteError } = await supabase.from("post_categories").delete().eq("post_id", post.id)
+      const { error: deleteError } = await supabase.from("categories").delete().eq("post_id", post.id)
 
       if (deleteError) {
         throw deleteError
@@ -159,7 +159,7 @@ export default function EditBlogPost({ params }: { params: { id: string } }) {
           category_id: categoryId,
         }))
 
-        const { error: insertError } = await supabase.from("post_categories").insert(categoryRelations)
+        const { error: insertError } = await supabase.from("categories").insert(categoryRelations)
 
         if (insertError) {
           throw insertError

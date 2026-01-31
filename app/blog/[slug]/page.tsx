@@ -49,7 +49,8 @@ async function getCurrentUser() {
 }
 
 export default async function BlogPost({ params }: { params: { slug: string } }) {
-  const post = await getPostBySlug(params.slug)
+  const { slug } = await params;
+  const post = await getPostBySlug(slug)
   const currentUser = await getCurrentUser()
 
   if (!post) {
